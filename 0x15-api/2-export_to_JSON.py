@@ -1,42 +1,30 @@
 #!/usr/bin/python3
+""" Python to get data from an API and convert to Json"""
+import csv
 import json
 import requests
-from sys import argv
+import sys
 
 
-# converts dict to json
-def to_json_string(list_dictionaries):
-    """ converts dict to json """
-    if list_dictionaries is None or list_dictionaries == []:
-        return "[]"
-    return json.dumps(list_dictionaries)
-
-
-# saves json to json file
-def save_to_file(LO_dict, name):
-    """ write into a .json file """
-    with open(name + ".json", "w") as f:
-        f.write(to_json_string(LO_dict))
-
-if __name__ == "__main__":
-    _id = argv[1]
-
-    base_url = "https://jsonplaceholder.typicode.com/"
-    user_url = "{}users/{}".format(base_url, _id)
-    tasks_url = "{}todos?userId={}".format(base_url, _id)
-
-    response = requests.get(user_url)
-    use_info = response.json()
-    user_name = use_info.get("username")
-
-    res = requests.get(tasks_url)
+if __name__ == '__main__':
+    USER_ID = sys.argv[1]
+    url_to_user = 'https://jsonplaceholder.typicode.com/users/' + USER_ID
+    res = requests.get(url_to_user)
+    """Documentation"""
+    USERNAME = res.json().get('username')
+    """Documentation"""
+    url_to_task = url_to_user + '/todos'
+    res = requests.get(url_to_task)
     tasks = res.json()
 
-    _data = []
+    dict_data = {USER_ID: []}
     for task in tasks:
-        users_info = {"task": task.get("title"),
-                      "completed": task.get("completed"),
-                      "username": user_name}
-        _data.append(users_info)
-
-    save_to_file({_id: _data}, _id)
+        TASK_COMPLETED_STATUS = task.get('completed')
+        TASK_TITLE = task.get('title')
+        dict_data[USER_ID].append({
+                                  "task": TASK_TITLE,
+                                  "completed": TASK_COMPLETED_STATUS,
+                                  "username": USERNAME})
+    """print(dict_data)"""
+    with open('{}.json'.format(USER_ID), 'w') as f:
+        json.dump(dict_data, f)
